@@ -1,0 +1,9 @@
+spring:
+  kafka:
+    # Адрес для подключения к Kafka
+    bootstrap-servers: localhost:19092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    topic: newTopic
