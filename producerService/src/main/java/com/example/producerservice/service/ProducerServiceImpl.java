@@ -10,15 +10,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ProducerServiceImpl implements ProducerService{
+public class ProducerServiceImpl implements ProducerService {
 
+    private final KafkaTemplate<String, String> kafkaTemplate;
     @Value(value = "${spring.kafka.topic}")
     private String topicName;
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
-
     @Override
     public void sendMessage(@RequestBody String message) {
-                kafkaTemplate.send(topicName, message);
+        kafkaTemplate.send(topicName, message);
     }
 }

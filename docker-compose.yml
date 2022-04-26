@@ -5,7 +5,7 @@ services:
     container_name: zookeeper
     restart: unless-stopped
     ports:
-    - '2181:2181'
+      - '2181:2181'
   kafka:
     image: confluentinc/cp-kafka:5.5.3
     hostname: kafka
@@ -13,23 +13,25 @@ services:
     restart: unless-stopped
     ports:
       - '19092:19092'
+      - '29092:29092'
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#      Делает kafka доступным из-за пределов контейнера. Внутренний порт - 9092
+      #      Делает kafka доступным из-за пределов контейнера. Внутренний порт - 9092
       # Для подключения продюсера через консоль - 9092, консьюмера - 19092
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL_CONNECTIONS://kafka:9092, OUTSIDE_CONNECTIONS://localhost:19092
-#      Определяет пары ключ/значение для использования протоколом безопасности для каждого имени прослушивателя
+      # непонятно, почему при запуске продюсера и консьюмера из докера, localhost нужно изменить на kafka
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL_CONNECTIONS://kafka:29092, OUTSIDE_CONNECTIONS://localhost:19092
+      #      Определяет пары ключ/значение для использования протоколом безопасности для каждого имени прослушивателя
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL_CONNECTIONS:PLAINTEXT, OUTSIDE_CONNECTIONS:PLAINTEXT
-#  Имя листенера, используемое для связи между брокерами.
-#  Если это не установлено, имя слушателя определяется security.inter.broker.protocol.
-#  Одновременная установка этого свойства и свойства security.inter.broker.protocol является ошибкой.
+      #  Имя листенера, используемое для связи между брокерами.
+      #  Если это не установлено, имя слушателя определяется security.inter.broker.protocol.
+      #  Одновременная установка этого свойства и свойства security.inter.broker.protocol является ошибкой.
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL_CONNECTIONS
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-# Количество реплик, по-умолчанию = 3
+      # Количество реплик, по-умолчанию = 3
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-#      Время, которое координатор группы будет ждать пока больше консумеров присоединится к группе
+      #      Время, которое координатор группы будет ждать пока больше консумеров присоединится к группе
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_BROKER_ID: 1
     depends_on:
@@ -41,9 +43,10 @@ services:
     restart: unless-stopped
     ports:
       - '19093:19093'
+      - '29093:29093'
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL_CONNECTIONS://kafka-2:9092, OUTSIDE_CONNECTIONS://localhost:19093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL_CONNECTIONS://kafka-2:29093, OUTSIDE_CONNECTIONS://localhost:19093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL_CONNECTIONS:PLAINTEXT, OUTSIDE_CONNECTIONS:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL_CONNECTIONS
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
@@ -54,3 +57,34 @@ services:
       KAFKA_BROKER_ID: 2
     depends_on:
       - zookeeper
+  kafka-producer-service:
+    container_name: kafka-producer-service
+    build:
+      context: ./producerService
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    depends_on:
+      - kafka
+      - kafka-2
+    environment:
+      KAFKA_HOST: kafka
+      KAFKA_PORT: 29092
+      KAFKA_2_HOST: kafka-2
+      KAFKA_2_PORT: 29093
+  kafka-consumer-service:
+    container_name: kafka-consumer-service
+    build:
+      context: ./consumerService
+      dockerfile: Dockerfile
+    ports:
+      - '8081:8081'
+    depends_on:
+      - kafka
+      - kafka-2
+    environment:
+      KAFKA_HOST: kafka
+      KAFKA_PORT: 29092
+      KAFKA_2_HOST: kafka-2
+      KAFKA_2_PORT: 29093
+

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class ConsumerServiceImpl implements ConsumerService{
+public class ConsumerServiceImpl implements ConsumerService {
 
     @KafkaListener(topics = "${spring.kafka.template.topic-name}")
     @Override

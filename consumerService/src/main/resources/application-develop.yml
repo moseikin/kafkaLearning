@@ -1,7 +1,9 @@
+server:
+  port: 8081
 spring:
   kafka:
     # Адрес для подключения к Kafka
-    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}, ${KAFKA_2_HOST}:${KAFKA_2_PORT}
+    bootstrap-servers: localhost:19092, localhost:19093
     consumer:
       group-id: 1
     template:
