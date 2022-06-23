@@ -18,7 +18,6 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       #      Делает kafka доступным из-за пределов контейнера. Внутренний порт - 9092
       # Для подключения продюсера через консоль - 9092, консьюмера - 19092
-      # непонятно, почему при запуске продюсера и консьюмера из докера, localhost нужно изменить на kafka
       KAFKA_ADVERTISED_LISTENERS: INTERNAL_CONNECTIONS://kafka:29092, OUTSIDE_CONNECTIONS://localhost:19092
       #      Определяет пары ключ/значение для использования протоколом безопасности для каждого имени прослушивателя
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL_CONNECTIONS:PLAINTEXT, OUTSIDE_CONNECTIONS:PLAINTEXT
@@ -57,10 +56,10 @@ services:
       KAFKA_BROKER_ID: 2
     depends_on:
       - zookeeper
-  kafka-producer-service:
-    container_name: kafka-producer-service
+  producer-service:
+    container_name: producer-service
     build:
-      context: ./producerService
+      context: ./producer-service
       dockerfile: Dockerfile
     ports:
       - '8080:8080'
@@ -72,10 +71,10 @@ services:
       KAFKA_PORT: 29092
       KAFKA_2_HOST: kafka-2
       KAFKA_2_PORT: 29093
-  kafka-consumer-service:
-    container_name: kafka-consumer-service
+  consumer-service:
+    container_name: consumer-service
     build:
-      context: ./consumerService
+      context: ./consumer-service
       dockerfile: Dockerfile
     ports:
       - '8081:8081'

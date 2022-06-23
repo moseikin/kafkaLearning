@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'checkstyle'
 }
 
 group 'org.example'
@@ -16,4 +17,42 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+allprojects {
+    task dockerDeploy {
+        description('Build all modules and deploys them in Docker')
+        dependsOn('build')
+        doLast {
+            exec {
+                ignoreExitValue true
+                workingDir '../'
+                commandLine 'docker-compose', '-f', 'docker-compose.yml', 'up', '--build','-d', "$project.name"
+            }
+        }
+    }
+}
+
+checkstyle {
+    toolVersion '8.3'
+    configFile = file("/checkstyle.xml")
+    maxWarnings(100)
+}
+
+def mostExcluded = ['.*/**', 'gradle*', 'build/**', '*.iml', '**/*.yml', '**/*.yaml', '**/*.xml', '*/Dockerfile', '*.log',
+                    '**/*.jar', '*.gradle', '*.xml', '*/*.gradle', '**/gradle/wrapper/*', '**/build/**']
+
+checkstyleMain {
+    ignoreFailures(true)
+    mostExcluded.add('**/test/java/*')
+        source = fileTree('.') {
+            excludes = mostExcluded
+        }
+}
+
+checkstyleTest {
+    mostExcluded.add('**/main/java/*')
+    source = fileTree('.') {
+        excludes = mostExcluded
+    }
 }
